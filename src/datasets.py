@@ -19,7 +19,7 @@ def maybe_download(directory, url_base, filename):
         utils.mkdir_p(directory)
 
     url = url_base + filename
-    _, zipped_filepath = tempfile.mkstemp(suffix='.gz')
+    zipped_filepath = filepath + ".temp"
     print('Downloading {} to {}'.format(url, zipped_filepath))
     urllib.request.urlretrieve(url, zipped_filepath)
     print('{} Bytes'.format(os.path.getsize(zipped_filepath)))
@@ -243,14 +243,14 @@ if __name__ == '__main__':
     print('MNIST')
     maybe_download_mnist()
 
-    print()
-    print('fashion MNIST')
-    maybe_download_fashion_mnist()
+    # print()
+    # print('fashion MNIST')
+    # maybe_download_fashion_mnist()
 
-    print()
-    print('20 binary datasets')
-    maybe_download_debd()
+    # print()
+    # print('20 binary datasets')
+    # maybe_download_debd()
 
-    print()
-    print('SVHN')
-    maybe_download_svhn()
+    # print()
+    # print('SVHN')
+    # maybe_download_svhn()

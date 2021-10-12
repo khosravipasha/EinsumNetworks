@@ -6,6 +6,7 @@ import datasets
 import utils
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
+print(device)
 
 demo_text = """
 This demo loads (fashion) mnist and quickly trains an EiNet for some epochs. 
@@ -24,14 +25,14 @@ exponential_family = EinsumNetwork.BinomialArray
 # exponential_family = EinsumNetwork.CategoricalArray
 # exponential_family = EinsumNetwork.NormalArray
 
-classes = [7]
+# classes = [7]
 # classes = [2, 3, 5, 7]
-# classes = None
+classes = None
 
 K = 10
 
-structure = 'poon-domingos'
-# structure = 'binary-trees'
+# structure = 'poon-domingos'
+structure = 'binary-trees'
 
 # 'poon-domingos'
 pd_num_pieces = [4]
@@ -41,11 +42,11 @@ width = 28
 height = 28
 
 # 'binary-trees'
-depth = 3
+depth = 4
 num_repetitions = 20
 
-num_epochs = 5
-batch_size = 100
+num_epochs = 1000
+batch_size = 1000
 online_em_frequency = 1
 online_em_stepsize = 0.05
 ############################################################################
@@ -112,6 +113,23 @@ einet.initialize()
 einet.to(device)
 print(einet)
 
+def count_parameters(model):
+    return sum(p.numel() for p in model.parameters() if p.requires_grad)
+
+print("Params")
+print(count_parameters(einet))
+
+####
+if fashion_mnist:
+    model_dir = '../models/einet/demo_fashion_mnist/'
+    samples_dir = '../samples/demo_fashion_mnist/'
+else:
+    model_dir = '../models/einet/demo_mnist/'
+    samples_dir = '../samples/demo_mnist/'
+utils.mkdir_p(model_dir)
+utils.mkdir_p(samples_dir)
+
+
 # Train
 ######################################
 
@@ -149,66 +167,58 @@ for epoch_count in range(num_epochs):
 
     einet.em_update()
 
-if fashion_mnist:
-    model_dir = '../models/einet/demo_fashion_mnist/'
-    samples_dir = '../samples/demo_fashion_mnist/'
-else:
-    model_dir = '../models/einet/demo_mnist/'
-    samples_dir = '../samples/demo_mnist/'
-utils.mkdir_p(model_dir)
-utils.mkdir_p(samples_dir)
+    #####################
+    # draw some samples #
+    #####################
+    if epoch_count % 20 == 0:
+        # einet.set_marginalization_idx([])
+        samples = einet.sample(num_samples=25).cpu().numpy()
+        samples = samples.reshape((-1, 28, 28))
+        utils.save_image_stack(samples, 5, 5, os.path.join(samples_dir, "samples_{}.png".format(epoch_count)), margin_gray_val=0.)
 
-#####################
-# draw some samples #
-#####################
+        # # Draw conditional samples for reconstruction
+        # image_scope = np.array(range(height * width)).reshape(height, width)
+        # marginalize_idx = list(image_scope[0:round(height/2), :].reshape(-1))
+        # keep_idx = [i for i in range(width*height) if i not in marginalize_idx]
+        # einet.set_marginalization_idx(marginalize_idx)
 
-samples = einet.sample(num_samples=25).cpu().numpy()
-samples = samples.reshape((-1, 28, 28))
-utils.save_image_stack(samples, 5, 5, os.path.join(samples_dir, "samples.png"), margin_gray_val=0.)
+        # num_samples = 10
+        # samples = None
+        # for k in range(num_samples):
+        #     if samples is None:
+        #         samples = einet.sample(x=test_x[0:25, :]).cpu().numpy()
+        #     else:
+        #         samples += einet.sample(x=test_x[0:25, :]).cpu().numpy()
+        # samples /= num_samples
+        # samples = samples.squeeze()
 
-# Draw conditional samples for reconstruction
-image_scope = np.array(range(height * width)).reshape(height, width)
-marginalize_idx = list(image_scope[0:round(height/2), :].reshape(-1))
-keep_idx = [i for i in range(width*height) if i not in marginalize_idx]
-einet.set_marginalization_idx(marginalize_idx)
+        # samples = samples.reshape((-1, 28, 28))
+        # utils.save_image_stack(samples, 5, 5, os.path.join(samples_dir, "sample_reconstruction{}.png".format(epoch_count)), margin_gray_val=0.)
 
-num_samples = 10
-samples = None
-for k in range(num_samples):
-    if samples is None:
-        samples = einet.sample(x=test_x[0:25, :]).cpu().numpy()
-    else:
-        samples += einet.sample(x=test_x[0:25, :]).cpu().numpy()
-samples /= num_samples
-samples = samples.squeeze()
+        # # ground truth
+        # ground_truth = test_x[0:25, :].cpu().numpy()
+        # ground_truth = ground_truth.reshape((-1, 28, 28))
+        # utils.save_image_stack(ground_truth, 5, 5, os.path.join(samples_dir, "ground_truth.png"), margin_gray_val=0.)
 
-samples = samples.reshape((-1, 28, 28))
-utils.save_image_stack(samples, 5, 5, os.path.join(samples_dir, "sample_reconstruction.png"), margin_gray_val=0.)
 
-# ground truth
-ground_truth = test_x[0:25, :].cpu().numpy()
-ground_truth = ground_truth.reshape((-1, 28, 28))
-utils.save_image_stack(ground_truth, 5, 5, os.path.join(samples_dir, "ground_truth.png"), margin_gray_val=0.)
+
+
 
 ###############################
 # perform mpe reconstructions #
 ###############################
-
 mpe = einet.mpe().cpu().numpy()
 mpe = mpe.reshape((1, 28, 28))
 utils.save_image_stack(mpe, 1, 1, os.path.join(samples_dir, "mpe.png"), margin_gray_val=0.)
-
 # Draw conditional samples for reconstruction
 image_scope = np.array(range(height * width)).reshape(height, width)
 marginalize_idx = list(image_scope[0:round(height/2), :].reshape(-1))
 keep_idx = [i for i in range(width*height) if i not in marginalize_idx]
 einet.set_marginalization_idx(marginalize_idx)
-
 mpe_reconstruction = einet.mpe(x=test_x[0:25, :]).cpu().numpy()
 mpe_reconstruction = mpe_reconstruction.squeeze()
 mpe_reconstruction = mpe_reconstruction.reshape((-1, 28, 28))
 utils.save_image_stack(mpe_reconstruction, 5, 5, os.path.join(samples_dir, "mpe_reconstruction.png"), margin_gray_val=0.)
-
 print()
 print('Saved samples to {}'.format(samples_dir))
 
@@ -242,9 +252,9 @@ valid_ll = EinsumNetwork.eval_loglikelihood_batched(einet, valid_x, batch_size=b
 test_ll = EinsumNetwork.eval_loglikelihood_batched(einet, test_x, batch_size=batch_size)
 print()
 print("Log-likelihoods before saving --- train LL {}   valid LL {}   test LL {}".format(
-        train_ll / train_N,
-        valid_ll / valid_N,
-        test_ll / test_N))
+        train_ll_before / train_N,
+        valid_ll_before / valid_N,
+        test_ll_before / test_N))
 print("Log-likelihoods after saving  --- train LL {}   valid LL {}   test LL {}".format(
         train_ll / train_N,
         valid_ll / valid_N,
