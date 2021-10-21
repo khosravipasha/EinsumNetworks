@@ -42,11 +42,11 @@ width = 28
 height = 28
 
 # 'binary-trees'
-depth = 4
-num_repetitions = 20
+depth = 6
+num_repetitions = 10
 
 num_epochs = 1000
-batch_size = 1000
+batch_size = 1024
 online_em_frequency = 1
 online_em_stepsize = 0.05
 ############################################################################
