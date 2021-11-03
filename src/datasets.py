@@ -35,10 +35,10 @@ def maybe_download_mnist():
                    't10k-labels-idx1-ubyte.gz']
 
     for file in mnist_files:
-        if not maybe_download('../data/mnist', 'http://yann.lecun.com/exdb/mnist/', file):
+        if not maybe_download('data/mnist', 'http://yann.lecun.com/exdb/mnist/', file):
             continue
-        print('unzip ../data/mnist/{}'.format(file))
-        filepath = os.path.join('../data/mnist/', file)
+        print('unzip data/mnist/{}'.format(file))
+        filepath = os.path.join('data/mnist/', file)
         with gzip.open(filepath, 'rb') as f_in:
             with open(filepath[0:-3], 'wb') as f_out:
                 shutil.copyfileobj(f_in, f_out)
@@ -49,7 +49,7 @@ def load_mnist():
 
     maybe_download_mnist()
 
-    data_dir = '../data/mnist'
+    data_dir = 'data/mnist'
 
     fd = open(os.path.join(data_dir, 'train-images-idx3-ubyte'))
     loaded = np.fromfile(file=fd, dtype=np.uint8)
@@ -80,10 +80,10 @@ def maybe_download_fashion_mnist():
                    't10k-labels-idx1-ubyte.gz']
 
     for file in mnist_files:
-        if not maybe_download('../data/fashion-mnist', 'http://fashion-mnist.s3-website.eu-central-1.amazonaws.com/', file):
+        if not maybe_download('data/fashion-mnist', 'http://fashion-mnist.s3-website.eu-central-1.amazonaws.com/', file):
             continue
-        print('unzip ../data/fashion-mnist/{}'.format(file))
-        filepath = os.path.join('../data/fashion-mnist/', file)
+        print('unzip data/fashion-mnist/{}'.format(file))
+        filepath = os.path.join('data/fashion-mnist/', file)
         with gzip.open(filepath, 'rb') as f_in:
             with open(filepath[0:-3], 'wb') as f_out:
                 shutil.copyfileobj(f_in, f_out)
@@ -94,7 +94,7 @@ def load_fashion_mnist():
 
     maybe_download_fashion_mnist()
 
-    data_dir = '../data/fashion-mnist'
+    data_dir = 'data/fashion-mnist'
 
     fd = open(os.path.join(data_dir, 'train-images-idx3-ubyte'))
     loaded = np.fromfile(file=fd, dtype=np.uint8)
@@ -119,11 +119,11 @@ def load_fashion_mnist():
 
 
 def maybe_download_debd():
-    if os.path.isdir('../data/debd'):
+    if os.path.isdir('data/debd'):
         return
-    subprocess.run(['git', 'clone', 'https://github.com/arranger1044/DEBD', '../data/debd'])
+    subprocess.run(['git', 'clone', 'https://github.com/arranger1044/DEBD', 'data/debd'])
     wd = os.getcwd()
-    os.chdir('../data/debd')
+    os.chdir('data/debd')
     subprocess.run(['git', 'checkout', '80a4906dcf3b3463370f904efa42c21e8295e85c'])
     subprocess.run(['rm', '-rf', '.git'])
     os.chdir(wd)
@@ -134,7 +134,7 @@ def load_debd(name, dtype='int32'):
 
     maybe_download_debd()
 
-    data_dir = '../data/debd'
+    data_dir = 'data/debd'
 
     train_path = os.path.join(data_dir, 'datasets', name, name + '.train.data')
     test_path = os.path.join(data_dir, 'datasets', name, name + '.test.data')
@@ -208,7 +208,7 @@ DEBD_display_name = {
 def maybe_download_svhn():
     svhn_files = ['train_32x32.mat', 'test_32x32.mat', "extra_32x32.mat"]
     for file in svhn_files:
-        maybe_download('../data/svhn', 'http://ufldl.stanford.edu/housenumbers/', file)
+        maybe_download('data/svhn', 'http://ufldl.stanford.edu/housenumbers/', file)
 
 
 def load_svhn(dtype=np.uint8):
@@ -218,7 +218,7 @@ def load_svhn(dtype=np.uint8):
 
     maybe_download_svhn()
 
-    data_dir = '../data/svhn'
+    data_dir = 'data/svhn'
 
     data_train = sp.loadmat(os.path.join(data_dir, "train_32x32.mat"))
     data_test = sp.loadmat(os.path.join(data_dir, "test_32x32.mat"))
